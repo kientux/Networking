@@ -7,6 +7,7 @@ class Tests: XCTestCase {
 
 // MARK: GET
 
+/*
 extension Tests {
     func testSynchronousGET() {
         var success = false
@@ -106,6 +107,8 @@ extension Tests {
     }
 }
 
+// MARK: Utilities
+
 extension Tests {
     func testBasicAuth() {
         let networking = Networking(baseURL: baseURL)
@@ -124,4 +127,4 @@ extension Tests {
         let url = networking.urlForPath("/hello")
         XCTAssertEqual(url.absoluteString, "http://httpbin.org/hello")
     }
-}
+}*/

@@ -6,6 +6,12 @@ import JSON
     import UIKit
 #endif
 
+/// The Networking errors
+public enum NetworkingError: ErrorType {
+    case SerializingError(error: NSError), Failed(error: NSError)
+}
+
+
 public class Networking {
     private enum RequestType: String {
         case GET, POST
@@ -16,9 +22,9 @@ public class Networking {
     private var session = NSURLSession.sharedSession()
 
     /**
-    Base initializer, it creates an instance of `Networking`.
-    - parameter baseURL: The base URL for HTTP requests under `Networking`.
-    */
+     Base initializer, it creates an instance of `Networking`.
+     - parameter baseURL: The base URL for HTTP requests under `Networking`.
+     */
     public init(baseURL: String) {
         self.baseURL = baseURL
         self.stubs = [RequestType : [String : AnyObject]]()
@@ -60,27 +66,27 @@ public class Networking {
     - parameter path: The path for the GET request.
     - parameter completion: A closure that gets called when the GET request is completed, it contains a `JSON` object and a `NSError`.
     */
-    public func GET(path: String, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
-        self.request(.GET, path: path, params: nil, completion: completion)
+    public func GET(path: String, completion: (JSON: AnyObject?) -> ()) throws {
+        try self.request(.GET, path: path, params: nil, completion: completion)
     }
 
     /**
-    Registers a response for a GET request to the specified path. After registering this, every GET request to the path, will return
-    the registered response.
-    - parameter path: The path for the stubbed GET request.
-    - parameter response: An `AnyObject` that will be returned when a GET request is made to the specified path.
-    */
+     Registers a response for a GET request to the specified path. After registering this, every GET request to the path, will return
+     the registered response.
+     - parameter path: The path for the stubbed GET request.
+     - parameter response: An `AnyObject` that will be returned when a GET request is made to the specified path.
+     */
     public func stubGET(path: String, response: AnyObject) {
         self.stub(.GET, path: path, response: response)
     }
 
     /**
-    Registers the contents of a file as the response for a GET request to the specified path. After registering this, every GET request to the path, will return
-    the contents of the registered file.
-    - parameter path: The path for the stubbed GET request.
-    - parameter fileName: The name of the file, whose contents will be registered as a reponse.
-    - parameter bundle: The NSBundle where the file is located.
-    */
+     Registers the contents of a file as the response for a GET request to the specified path. After registering this, every GET request to the path, will return
+     the contents of the registered file.
+     - parameter path: The path for the stubbed GET request.
+     - parameter fileName: The name of the file, whose contents will be registered as a reponse.
+     - parameter bundle: The NSBundle where the file is located.
+     */
     public func stubGET(path: String, fileName: String, bundle: NSBundle = NSBundle.mainBundle()) {
         self.stub(.GET, path: path, fileName: fileName, bundle: bundle)
     }
@@ -93,27 +99,27 @@ public class Networking {
     - parameter params: The parameters to be used, they will be serialized using NSJSONSerialization.
     - parameter completion: A closure that gets called when the POST request is completed, it contains a `JSON` object and a `NSError`.
     */
-    public func POST(path: String, params: AnyObject?, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
-        self.request(.POST, path: path, params: params, completion: completion)
+    public func POST(path: String, params: AnyObject?, completion: (JSON: AnyObject?) -> ()) throws {
+        try self.request(.POST, path: path, params: params, completion: completion)
     }
 
     /**
-    Registers a response for a POST request to the specified path. After registering this, every POST request to the path, will return
-    the registered response.
-    - parameter path: The path for the stubbed POST request.
-    - parameter response: An `AnyObject` that will be returned when a POST request is made to the specified path.
-    */
+     Registers a response for a POST request to the specified path. After registering this, every POST request to the path, will return
+     the registered response.
+     - parameter path: The path for the stubbed POST request.
+     - parameter response: An `AnyObject` that will be returned when a POST request is made to the specified path.
+     */
     public func stubPOST(path: String, response: AnyObject) {
         self.stub(.POST, path: path, response: response)
     }
 
     /**
-    Registers the contents of a file as the response for a POST request to the specified path. After registering this, every POST request to the path, will return
-    the contents of the registered file.
-    - parameter path: The path for the stubbed POST request.
-    - parameter fileName: The name of the file, whose contents will be registered as a reponse.
-    - parameter bundle: The NSBundle where the file is located.
-    */
+     Registers the contents of a file as the response for a POST request to the specified path. After registering this, every POST request to the path, will return
+     the contents of the registered file.
+     - parameter path: The path for the stubbed POST request.
+     - parameter fileName: The name of the file, whose contents will be registered as a reponse.
+     - parameter bundle: The NSBundle where the file is located.
+     */
     public func stubPOST(path: String, fileName: String, bundle: NSBundle = NSBundle.mainBundle()) {
         self.stub(.POST, path: path, fileName: fileName, bundle: bundle)
     }
@@ -125,7 +131,7 @@ public class Networking {
     - parameter path: The path where the image is located
     - parameter completion: A closure that gets called when the image download request is completed, it contains an `UIImage` object and a `NSError`.
     */
-    public func downloadImage(path: String, completion: (image: UIImage?, error: NSError?) -> ()) {
+    public func downloadImage(path: String, completion: (image: UIImage?) -> ()) throws {
         let request = NSMutableURLRequest(URL: self.urlForPath(path))
         request.HTTPMethod = "GET"
         request.addValue("image/jpeg", forHTTPHeaderField: "Content-Type")
@@ -138,11 +144,11 @@ public class Networking {
         self.session.downloadTaskWithRequest(request, completionHandler: { url, response, error in
             if let url = url, data = NSData(contentsOfURL: url), image = UIImage(data: data) {
                 dispatch_async(dispatch_get_main_queue(), {
-                    completion(image: image, error: nil)
+                    completion(image: image)
                 })
             } else {
                 dispatch_async(dispatch_get_main_queue(), {
-                    completion(image: nil, error: error)
+                    completion(image: nil)
                 })
             }
         }).resume()
@@ -181,7 +187,7 @@ extension Networking {
         self.stubs[requestType] = getStubs
     }
 
-    private func request(requestType: RequestType, path: String, params: AnyObject?, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
+    private func request(requestType: RequestType, path: String, params: AnyObject?, completion: (JSON: AnyObject?) -> ()) throws {
         let request = NSMutableURLRequest(URL: self.urlForPath(path))
         request.HTTPMethod = requestType.rawValue
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -194,7 +200,7 @@ extension Networking {
         let responses = self.stubs[requestType] ?? [String : AnyObject]()
 
         if let response = responses[path] {
-            completion(JSON: response, error: nil)
+            completion(JSON: response)
         } else {
             #if os(iOS)
                 if Test.isRunning() == false {
@@ -214,9 +220,7 @@ extension Networking {
             }
 
             if let serializingError = serializingError {
-                dispatch_async(dispatch_get_main_queue(), {
-                    completion(JSON: nil, error: serializingError)
-                })
+                throw NetworkingError.SerializingError(error: serializingError)
             } else {
                 var connectionError: NSError?
                 var result: AnyObject?
@@ -231,32 +235,37 @@ extension Networking {
 
                     if let data = data {
                         do {
-                            result = try NSJSONSerialization.JSONObjectWithData(data, options: .MutableLeaves)
-                        } catch let serializingError as NSError {
-                            if error == nil {
-                                connectionError = serializingError
+                            result = try NSJSONSerialization.JSONObjectWithData(data, options: [])
+
+                            if Test.isRunning() {
+                                dispatch_semaphore_signal(semaphore)
+                            } else {
+                                dispatch_async(dispatch_get_main_queue(), {
+                                    #if os(iOS)
+                                        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+                                    #endif
+
+                                    self.logError(params, data: returnedData, request: request, response: returnedResponse, error: connectionError)
+
+                                    if let connectionError = connectionError {
+                                        throw NetworkingError.Failed(error: connectionError)
+                                    } else {
+                                        completion(JSON: result)
+                                    }
+                                })
                             }
+                        } catch let serializingError as NSError {
+                            throw NetworkingError.SerializingError(error: serializingError)
                         }
-                    }
-
-                    if Test.isRunning() {
-                        dispatch_semaphore_signal(semaphore)
-                    } else {
-                        dispatch_async(dispatch_get_main_queue(), {
-                            #if os(iOS)
-                                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-                            #endif
-
-                            self.logError(params, data: returnedData, request: request, response: returnedResponse, error: connectionError)
-                            completion(JSON: result, error: connectionError)
-                        })
+                    } else if let connectionError = connectionError {
+                        throw NetworkingError.Failed(error: connectionError)
                     }
                 }).resume()
 
                 if Test.isRunning() {
                     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
                     self.logError(params, data: returnedData, request: request, response: returnedResponse, error: connectionError)
-                    completion(JSON: result, error: connectionError)
+                    completion(JSON: result)
                 }
             }
         }
@@ -295,7 +304,7 @@ extension Networking {
             print("Response: \(response)")
             print(" ")
         }
-
+        
         print("================= ~ ==================")
         print(" ")
     }
