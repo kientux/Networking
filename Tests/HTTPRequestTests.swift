@@ -11,33 +11,35 @@ extension HTTPRequestTests {
     func testSynchronousGET() {
         var synchronous = false
         let networking = Networking(baseURL: baseURL)
-        networking.GET("/get", completion: { JSON, error in
+        networking.GET("/get", success: { JSON in
             synchronous = true
-        })
+        }) { error in
+            fatalError()
+        }
 
         XCTAssertTrue(synchronous)
     }
 
     func testGET() {
         let networking = Networking(baseURL: baseURL)
-        networking.GET("/get", completion: { JSON, error in
+        networking.GET("/get", success: { JSON in
             let JSON = JSON as! [String : AnyObject]
             let url = JSON["url"] as! String
             XCTAssertEqual(url, "http://httpbin.org/get")
-        })
+        }) { error in
+            fatalError()
+        }
     }
 
     func testGETWithInvalidPath() {
         let networking = Networking(baseURL: baseURL)
-        networking.GET("/invalidpath", completion: { JSON, error in
-            if let JSON: AnyObject = JSON {
-                fatalError("JSON not nil: \(JSON)")
-            } else {
-                XCTAssertNotNil(error)
-            }
-        })
+        networking.GET("/invalidpath", success: { JSON in
+            fatalError()
+        }) { error in
+            XCTAssertNotNil(error)
+        }
     }
-
+/*
     func testFakeGET() {
         let networking = Networking(baseURL: baseURL)
 
@@ -281,31 +283,31 @@ extension HTTPRequestTests {
     func testSynchronousDELETE() {
         var synchronous = false
         let networking = Networking(baseURL: baseURL)
-        networking.DELETE("/delete", completion: { JSON, error in
+        networking.DELETE("/delete", success: { JSON in
             synchronous = true
-        })
+        }) { error in
+        }
 
         XCTAssertTrue(synchronous)
     }
 
     func testDELETE() {
         let networking = Networking(baseURL: baseURL)
-        networking.DELETE("/delete", completion: { JSON, error in
+        networking.DELETE("/delete", success: { JSON in
             let JSON = JSON as! [String : AnyObject]
             let url = JSON["url"] as! String
             XCTAssertEqual(url, "http://httpbin.org/delete")
-        })
+        }) { error in
+        }
     }
 
     func testDELETEWithInvalidPath() {
         let networking = Networking(baseURL: baseURL)
-        networking.DELETE("/invalidpath", completion: { JSON, error in
-            if let JSON: AnyObject = JSON {
-                fatalError("JSON not nil: \(JSON)")
-            } else {
-                XCTAssertNotNil(error)
-            }
-        })
+        networking.DELETE("/invalidpath", success: { JSON in
+            fatalError("JSON not nil: \(JSON)")
+        }) { error in
+            XCTAssertNotNil(error)
+        }
     }
 
     func testFakeDELETE() {
@@ -359,4 +361,5 @@ extension HTTPRequestTests {
 
         waitForExpectationsWithTimeout(3.0, handler: nil)
     }
+ */
 }

@@ -5,10 +5,11 @@ public extension Networking {
     /**
     GET request to the specified path.
     - parameter path: The path for the GET request.
-    - parameter completion: A closure that gets called when the GET request is completed, it contains a `JSON` object and a `NSError`.
+    - parameter success: A closure that gets called when the GET request is successful, it contains a `JSON`
+    - parameter failure: A closure that gets called when the GET request fails, it contains a `error`
     */
-    public func GET(path: String, contentType: ContentType = .JSON, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
-        self.request(.GET, path: path, contentType: contentType, parameters: nil, completion: completion)
+    public func GET(path: String, contentType: ContentType = .JSON, success: (JSON: AnyObject?) -> Void, failure: (error: NSError?) -> Void) {
+        self.request(.GET, path: path, contentType: contentType, parameters: nil, success: success, failure: failure)
     }
 
     /**
@@ -50,10 +51,11 @@ public extension Networking {
     POST request to the specified path, using the provided parameters.
     - parameter path: The path for the POST request.
     - parameter parameters: The parameters to be used, they will be serialized using NSJSONSerialization.
-    - parameter completion: A closure that gets called when the POST request is completed, it contains a `JSON` object and a `NSError`.
+     - parameter success: A closure that gets called when the POST request is successful, it contains a `JSON`
+     - parameter failure: A closure that gets called when the POST request fails, it contains a `error`
     */
-    public func POST(path: String, contentType: ContentType = .JSON, parameters: AnyObject? = nil, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
-        self.request(.POST, path: path, contentType: contentType, parameters: parameters, completion: completion)
+    public func POST(path: String, contentType: ContentType = .JSON, parameters: AnyObject? = nil, success: (JSON: AnyObject?) -> Void, failure: (error: NSError?) -> Void) {
+        self.request(.POST, path: path, contentType: contentType, parameters: parameters, success: success, failure: failure)
     }
 
     /**
@@ -95,10 +97,11 @@ public extension Networking {
     PUT request to the specified path, using the provided parameters.
     - parameter path: The path for the PUT request.
     - parameter parameters: The parameters to be used, they will be serialized using NSJSONSerialization.
-    - parameter completion: A closure that gets called when the PUT request is completed, it contains a `JSON` object and a `NSError`.
+     - parameter success: A closure that gets called when the PUT request is successful, it contains a `JSON`
+     - parameter failure: A closure that gets called when the PUT request fails, it contains a `error`
     */
-    public func PUT(path: String, contentType: ContentType = .JSON, parameters: AnyObject?, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
-        self.request(.PUT, path: path, contentType: contentType, parameters: parameters, completion: completion)
+    public func PUT(path: String, contentType: ContentType = .JSON, parameters: AnyObject?, success: (JSON: AnyObject?) -> Void, failure: (error: NSError?) -> Void) {
+        self.request(.PUT, path: path, contentType: contentType, parameters: parameters, success: success, failure: failure)
     }
 
     /**
@@ -139,10 +142,11 @@ public extension Networking {
     /**
     DELETE request to the specified path, using the provided parameters.
     - parameter path: The path for the DELETE request.
-    - parameter completion: A closure that gets called when the DELETE request is completed, it contains a `JSON` object and a `NSError`.
+     - parameter success: A closure that gets called when the DELETE request is successful, it contains a `JSON`
+     - parameter failure: A closure that gets called when the DELETE request fails, it contains a `error`
     */
-    public func DELETE(path: String, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
-        self.request(.DELETE, path: path, contentType: .JSON, parameters: nil, completion: completion)
+    public func DELETE(path: String, success: (JSON: AnyObject?) -> Void, failure: (error: NSError?) -> Void) {
+        self.request(.DELETE, path: path, contentType: .JSON, parameters: nil, success: success, failure: failure)
     }
 
     /**

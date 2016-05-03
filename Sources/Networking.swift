@@ -234,13 +234,13 @@ extension Networking {
         self.fakeRequests[requestType] = fakeRequests
     }
 
-    func request(requestType: RequestType, path: String, contentType: ContentType, parameters: AnyObject?, completion: (JSON: AnyObject?, error: NSError?) -> ()) {
+    func request(requestType: RequestType, path: String, contentType: ContentType, parameters: AnyObject?, success: (JSON: AnyObject?) -> Void, failure: (error: NSError?) -> Void) {
         if let responses = self.fakeRequests[requestType], fakeRequest = responses[path] {
             if fakeRequest.statusCode.statusCodeType() == .Successful {
-                completion(JSON: fakeRequest.response, error: nil)
+                success(JSON: fakeRequest.response)
             } else {
                 let error = NSError(domain: Networking.ErrorDomain, code: fakeRequest.statusCode, userInfo: [NSLocalizedDescriptionKey : NSHTTPURLResponse.localizedStringForStatusCode(fakeRequest.statusCode)])
-                completion(JSON: nil, error: error)
+                failure(error: error)
             }
         } else {
             let request = NSMutableURLRequest(URL: self.urlForPath(path))
@@ -279,7 +279,7 @@ extension Networking {
 
             if let serializingError = serializingError {
                 dispatch_async(dispatch_get_main_queue(), {
-                    completion(JSON: nil, error: serializingError)
+                    failure(error: serializingError)
                 })
             } else {
                 var connectionError: NSError?
@@ -316,7 +316,11 @@ extension Networking {
                             NetworkActivityIndicator.sharedIndicator.visible = false
 
                             self.logError(contentType, parameters: parameters, data: returnedData, request: request, response: returnedResponse, error: connectionError)
-                            completion(JSON: result, error: connectionError)
+                            if let connectionError = connectionError {
+                                failure(error: connectionError)
+                            } else {
+                                success(JSON: result)
+                            }
                         })
                     }
                 }).resume()
@@ -324,7 +328,11 @@ extension Networking {
                 if TestCheck.isTesting && self.disableTestingMode == false {
                     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
                     self.logError(contentType, parameters: parameters, data: returnedData, request: request, response: returnedResponse, error: connectionError)
-                    completion(JSON: result, error: connectionError)
+                    if let connectionError = connectionError {
+                        failure(error: connectionError)
+                    } else {
+                        success(JSON: result)
+                    }
                 }
             }
         }
